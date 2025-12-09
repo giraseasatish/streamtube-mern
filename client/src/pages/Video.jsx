@@ -1,0 +1,200 @@
+import React, { useEffect, useState } from "react";
+import styled from "styled-components";
+import ThumbUpOutlinedIcon from "@mui/icons-material/ThumbUpOutlined";
+import ThumbDownOffAltOutlinedIcon from "@mui/icons-material/ThumbDownOffAltOutlined";
+import ReplyOutlinedIcon from "@mui/icons-material/ReplyOutlined";
+import AddTaskOutlinedIcon from "@mui/icons-material/AddTaskOutlined";
+import Comments from "../components/Comments";
+import Card from "../components/Card";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation } from "react-router-dom";
+import axios from "axios";
+import { fetchSuccess } from "../redux/videoSlice";
+
+const Container = styled.div`
+  display: flex;
+  gap: 24px;
+`;
+
+const Content = styled.div`
+  flex: 5;
+`;
+
+const VideoWrapper = styled.div``;
+
+const Title = styled.h1`
+  font-size: 18px;
+  font-weight: 400;
+  margin-top: 20px;
+  margin-bottom: 10px;
+  color: ${({ theme }) => theme.text};
+`;
+
+const Details = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+`;
+
+const Info = styled.span`
+  color: ${({ theme }) => theme.textSoft};
+`;
+
+const Buttons = styled.div`
+  display: flex;
+  gap: 20px;
+  color: ${({ theme }) => theme.text};
+`;
+
+const Button = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+`;
+
+const Hr = styled.hr`
+  margin: 15px 0px;
+  border: 0.5px solid ${({ theme }) => theme.soft};
+`;
+
+const Recommendation = styled.div`
+  flex: 2;
+`;
+
+const Channel = styled.div`
+  display: flex;
+  justify-content: space-between;
+`;
+
+const ChannelInfo = styled.div`
+  display: flex;
+  gap: 20px;
+`;
+
+const Image = styled.img`
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background-color: #999;
+`;
+
+const ChannelDetail = styled.div`
+  display: flex;
+  flex-direction: column;
+  color: ${({ theme }) => theme.text};
+`;
+
+const ChannelName = styled.span`
+  font-weight: 500;
+`;
+
+const ChannelCounter = styled.span`
+  margin-top: 5px;
+  margin-bottom: 20px;
+  color: ${({ theme }) => theme.textSoft};
+  font-size: 12px;
+`;
+
+const Description = styled.p`
+  font-size: 14px;
+`;
+
+const Subscribe = styled.button`
+  background-color: #cc1a00;
+  font-weight: 500;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  height: max-content;
+  padding: 10px 20px;
+  cursor: pointer;
+`;
+
+const VideoFrame = styled.video`
+  max-height: 720px;
+  width: 100%;
+  object-fit: cover;
+`;
+
+const Video = () => {
+  const { currentUser } = useSelector((state) => state.user);
+  const { currentVideo } = useSelector((state) => state.video);
+  const dispatch = useDispatch();
+
+  // 1. Get Video ID from URL (e.g., /video/123 -> "123")
+  const path = useLocation().pathname.split("/")[2];
+
+  const [channel, setChannel] = useState({});
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // 2. Fetch Video Data
+        const videoRes = await axios.get(`http://127.0.0.1:3000/api/videos/find/${path}`);
+        
+        // 3. Fetch Channel Data (using userId from video)
+        const channelRes = await axios.get(`http://127.0.0.1:3000/api/users/find/${videoRes.data.userId}`);
+        
+        setChannel(channelRes.data);
+        dispatch(fetchSuccess(videoRes.data)); // Save video to Redux
+      } catch (err) {}
+    };
+    fetchData();
+  }, [path, dispatch]);
+
+  return (
+    <Container>
+      <Content>
+        <VideoWrapper>
+          {/* Use HTML5 Video Player with controls */}
+          <VideoFrame src={currentVideo?.videoUrl} controls />
+        </VideoWrapper>
+        
+        {/* Display Real Data */}
+        <Title>{currentVideo?.title}</Title>
+        <Details>
+          <Info>{currentVideo?.views} views • {currentVideo?.createdAt}</Info>
+          <Buttons>
+            <Button>
+              <ThumbUpOutlinedIcon /> {currentVideo?.likes?.length}
+            </Button>
+            <Button>
+              <ThumbDownOffAltOutlinedIcon /> Dislike
+            </Button>
+            <Button>
+              <ReplyOutlinedIcon /> Share
+            </Button>
+            <Button>
+              <AddTaskOutlinedIcon /> Save
+            </Button>
+          </Buttons>
+        </Details>
+        <Hr />
+        <Channel>
+          <ChannelInfo>
+            {/* Display Real Channel Data */}
+            <Image src={channel.img} />
+            <ChannelDetail>
+              <ChannelName>{channel.username}</ChannelName>
+              <ChannelCounter>{channel.subscribers} subscribers</ChannelCounter>
+              <Description>
+                {currentVideo?.desc}
+              </Description>
+            </ChannelDetail>
+          </ChannelInfo>
+          <Subscribe>SUBSCRIBE</Subscribe>
+        </Channel>
+        <Hr />
+        <Comments videoId={currentVideo?._id} />
+      </Content>
+      <Recommendation>
+        <Card type="sm" />
+        <Card type="sm" />
+        <Card type="sm" />
+      </Recommendation>
+    </Container>
+  );
+};
+
+export default Video;
