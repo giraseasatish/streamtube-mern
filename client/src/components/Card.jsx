@@ -1,6 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import moment from "moment";
+import axios from "axios";
+
+// --- STYLED COMPONENTS ---
 
 const Container = styled.div`
   width: ${(props) => props.type !== "sm" && "360px"};
@@ -8,7 +12,7 @@ const Container = styled.div`
   cursor: pointer;
   display: flex;
   gap: 10px;
-  flex-direction: ${(props) => (props.type === "sm" ? "row" : "column")}; /* Row for sidebar */
+  flex-direction: ${(props) => (props.type === "sm" ? "row" : "column")};
 `;
 
 const Image = styled.img`
@@ -16,6 +20,8 @@ const Image = styled.img`
   height: ${(props) => (props.type === "sm" ? "120px" : "202px")};
   background-color: #999;
   flex: 1;
+  object-fit: cover;
+  border-radius: 4px;
 `;
 
 const Details = styled.div`
@@ -30,7 +36,8 @@ const ChannelImage = styled.img`
   height: 36px;
   border-radius: 50%;
   background-color: #999;
-  display: ${(props) => props.type === "sm" && "none"}; /* Hide avatar in sidebar */
+  display: ${(props) => props.type === "sm" && "none"};
+  object-fit: cover;
 `;
 
 const Texts = styled.div``;
@@ -53,30 +60,53 @@ const Info = styled.div`
   color: ${({ theme }) => theme.textSoft};
 `;
 
-// Change arguments to accept 'video'
-const Card = ({ type, video }) => { 
-  
-  // We need to fetch the Channel Info (Avatar/Name) based on video.userId later.
-  // For now, we will just show the Video Title and Views.
+// --- COMPONENT LOGIC ---
+
+const Card = ({ type, video }) => {
+  const [channel, setChannel] = useState({});
+
+  // GUARD: If video data is missing, don't render
+  if (!video) {
+    return null;
+  }
+
+  useEffect(() => {
+    const fetchChannel = async () => {
+      try {
+        // Corrected Port: 3000
+        const res = await axios.get(`http://localhost:3000/api/users/find/${video.userId}`);
+        setChannel(res.data);
+      } catch (err) {
+        // console.error("Error fetching channel");
+      }
+    };
+    if (video.userId) {
+        fetchChannel();
+    }
+  }, [video.userId]);
 
   return (
     <Link to={`/video/${video._id}`} style={{ textDecoration: "none" }}>
       <Container type={type}>
-        {/* Use Real Image URL */}
         <Image type={type} src={video.imgUrl} />
         
         <Details type={type}>
-          <ChannelImage type={type} src="https://yt3.ggpht.com/..." />
+          <ChannelImage 
+            type={type} 
+            src={channel.img || "https://placehold.co/36x36/666/fff?text=C"} 
+          />
+          
           <Texts>
-            {/* Use Real Title */}
             <Title>{video.title}</Title>
-            <ChannelName>Channel Name</ChannelName>
-            {/* Use Real View Count */}
-            <Info>{video.views} views • 1 day ago</Info>
+            <ChannelName>{channel.username || "Loading..."}</ChannelName>
+            <Info>
+                {video.views} views • {moment(video.createdAt).fromNow()}
+            </Info>
           </Texts>
         </Details>
       </Container>
     </Link>
   );
 };
+
 export default Card;

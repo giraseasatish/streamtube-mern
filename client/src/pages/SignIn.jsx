@@ -11,15 +11,15 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   height: calc(100vh - 56px);
-  color: white;
+  color: ${({ theme }) => theme.text};
 `;
 
 const Wrapper = styled.div`
   display: flex;
   align-items: center;
   flex-direction: column;
-  background-color: #202020;
-  border: 1px solid #373737;
+  background-color: ${({ theme }) => theme.bgLighter};
+  border: 1px solid ${({ theme }) => theme.soft};
   padding: 20px 50px;
   gap: 10px;
 `;
@@ -34,12 +34,12 @@ const SubTitle = styled.h2`
 `;
 
 const Input = styled.input`
-  border: 1px solid #373737;
+  border: 1px solid ${({ theme }) => theme.soft};
   border-radius: 3px;
   padding: 10px;
   background-color: transparent;
   width: 100%;
-  color: white;
+  color: ${({ theme }) => theme.text};
 `;
 
 const Button = styled.button`
@@ -48,15 +48,15 @@ const Button = styled.button`
   padding: 10px 20px;
   font-weight: 500;
   cursor: pointer;
-  background-color: #373737;
-  color: #aaaaaa;
+  background-color: ${({ theme }) => theme.soft};
+  color: ${({ theme }) => theme.textSoft};
 `;
 
 const More = styled.div`
   display: flex;
   margin-top: 10px;
   font-size: 12px;
-  color: #aaaaaa;
+  color: ${({ theme }) => theme.textSoft};
 `;
 
 const Links = styled.div`
@@ -68,20 +68,43 @@ const Link = styled.span`
 `;
 
 const SignIn = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // LOGIN LOGIC
   const handleLogin = async (e) => {
     e.preventDefault();
     dispatch(loginStart());
     try {
-      const res = await axios.post("/api/auth/login", { email, password });
+      // Direct connection to Port 3000
+      const res = await axios.post("http://localhost:3000/api/auth/login", { email, password });
+      
+      // Save User + Token (via cookie)
       dispatch(loginSuccess(res.data));
       navigate("/");
     } catch (err) {
       dispatch(loginFailure());
+      console.log("Login Failed:", err);
+    }
+  };
+
+  // SIGNUP LOGIC
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    try {
+      await axios.post("http://localhost:3000/api/auth/register", {
+        username: name,
+        email,
+        password,
+      });
+      alert("Account created! Please sign in.");
+      setName("");
+      setEmail("");
+      setPassword("");
+    } catch (err) {
       console.log(err);
     }
   };
@@ -95,10 +118,10 @@ const SignIn = () => {
         <Input type="password" placeholder="password" onChange={(e) => setPassword(e.target.value)} />
         <Button onClick={handleLogin}>Sign in</Button>
         <Title>or</Title>
-        <Input placeholder="username" />
-        <Input placeholder="email" />
-        <Input type="password" placeholder="password" />
-        <Button>Sign up</Button>
+        <Input placeholder="username" onChange={(e) => setName(e.target.value)} />
+        <Input placeholder="email" onChange={(e) => setEmail(e.target.value)} />
+        <Input type="password" placeholder="password" onChange={(e) => setPassword(e.target.value)} />
+        <Button onClick={handleSignup}>Sign up</Button>
       </Wrapper>
       <More>
         English(USA)

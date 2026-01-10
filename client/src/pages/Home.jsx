@@ -9,28 +9,29 @@ const Container = styled.div`
   flex-wrap: wrap;
 `;
 
-const Home = () => {
-  // 1. STATE: Store the list of videos here
+const Home = ({ type }) => {
   const [videos, setVideos] = useState([]);
 
-  // 2. EFFECT: Run this when the page loads
   useEffect(() => {
     const fetchVideos = async () => {
-      // Fetch random videos from our Backend
-      // (Using the full URL because we are in Direct Mode)
-      const res = await axios.get("http://127.0.0.1:3000/api/videos/random");
-      
-      // Save the data to State
-      setVideos(res.data);
+      try {
+        // Fetch videos from the backend (Port 3000)
+        // If type is "trend", it fetches trending. If "sub", it fetches subscribed channels.
+        // Defaults to "random" if type is not provided.
+        const endpoint = type ? type : "random";
+        const res = await axios.get(`http://localhost:3000/api/videos/${endpoint}`);
+        setVideos(res.data);
+      } catch (err) {
+        // console.error("Error fetching videos");
+      }
     };
     fetchVideos();
-  }, []); // [] means run only once
+  }, [type]);
 
   return (
     <Container>
-      {/* 3. MAP: Loop through the videos and create a Card for each one */}
       {videos.map((video) => (
-        <Card key={video._id} video={video}/>
+        <Card key={video._id} video={video} />
       ))}
     </Container>
   );

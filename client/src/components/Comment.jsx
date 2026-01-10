@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styled from "styled-components";
 import axios from "axios";
+import moment from "moment";
 
 const Container = styled.div`
   display: flex;
@@ -43,23 +44,31 @@ const Comment = ({ comment }) => {
   const [channel, setChannel] = useState({});
 
   useEffect(() => {
-    // Logic: We have the Comment Data, but we need the User Data (Name/Pic)
-    // We use the 'userId' stored in the comment to fetch the User profile.
     const fetchCommentAuthor = async () => {
       try {
-        const res = await axios.get(`http://127.0.0.1:3000/api/users/find/${comment.userId}`);
+        // Corrected Port: 3000
+        const res = await axios.get(`http://localhost:3000/api/users/find/${comment.userId}`);
         setChannel(res.data);
-      } catch (err) {}
+      } catch (err) {
+        // console.error("Error fetching comment author");
+      }
     };
-    fetchCommentAuthor();
+    
+    if (comment.userId) {
+        fetchCommentAuthor();
+    }
   }, [comment.userId]);
 
   return (
     <Container>
-      <Avatar src={channel.img} />
+      <Avatar 
+        src={channel.img || "https://placehold.co/50x50/666/fff?text=C"} 
+        onError={(e) => { e.target.onerror = null; e.target.src = "https://placehold.co/50x50/666/fff?text=C"; }}
+      />
+      
       <Details>
         <Name>
-          {channel.username} <Date>1 day ago</Date>
+          {channel.username || "Loading..."} <Date>{moment(comment.createdAt).fromNow()}</Date>
         </Name>
         <Text>
           {comment.desc}

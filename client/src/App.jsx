@@ -1,12 +1,13 @@
 import styled, { ThemeProvider } from "styled-components";
+import Menu from "./components/Menu";
+import Navbar from "./components/Navbar";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { darkTheme } from "./utils/Theme";
 import Home from "./pages/Home";
 import Video from "./pages/Video";
 import SignIn from "./pages/SignIn";
-import Menu from "./components/Menu"; 
-import Navbar from "./components/Navbar";
 
+// 1. Layout Architecture
 const Container = styled.div`
   display: flex;
 `;
@@ -20,24 +21,17 @@ const Wrapper = styled.div`
   padding: 22px 96px;
 `;
 
-const MenuWrapper = styled.div`
-  flex: 1;
-  background-color: ${({ theme }) => theme.bgLighter};
-  color: ${({ theme }) => theme.text};
-`;
-
 function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <Container>
         <BrowserRouter>
-          {/* 2. WRITE IT HERE (The Left Sidebar) */}
+          {/* SIDEBAR (Left) */}
           <Menu />
 
-          {/* MAIN CONTENT */}
+          {/* MAIN CONTENT (Right) */}
           <Main>
-            <Navbar /> {/* <--- ADD THIS HERE */}
-            <div style={{color:"white", padding:"10px"}}>Navbar</div>
+            <Navbar />
             
             <Wrapper>
               <Routes>
